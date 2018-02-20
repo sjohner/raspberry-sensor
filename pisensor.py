@@ -26,7 +26,7 @@ sense = SenseHat()
 
 # initialize configparser
 config = configparser.ConfigParser()
-config.read('pytempsensor.conf')
+config.read('pisensor.conf')
 
 # HTTP options
 # Because it can poll "after 9 seconds" polls will happen effectively
@@ -69,7 +69,7 @@ CONNECTION_STRING = "HostName=jhnr-iotworkshop.azure-devices.net;DeviceId=jhnr-d
 
 # message texts
 MSG_TXT = "{\"deviceId\": \"jhnr-device\",\"temp_from_humidity\": %.2f,\"temp_from_pressure\": %.2f,\"temp_cpu\": %.2f,\"temp_corr\": %.2f,\"pressure\": %.2f,\"humidity\": %.2f}"
-REPORTED_TXT = "{\"pythonVersion\":\"2.7.2\"}"
+REPORTED_TXT = "{\"pythonVersion\":\"2.7.2\",\"sendInterval\":\"50\"}"
 
 # some embedded platforms need certificate information
 
@@ -123,9 +123,12 @@ def connection_status_callback(result, reason, user_context):
 def device_twin_callback(update_state, payload, user_context):
     global TWIN_CALLBACKS
 
-    
-    j = json.loads(payload)
-    print j['desired']['sendInterval']
+    json_payload = json.loads(payload)
+    if (json_payload['desired']['sendInterval'] != json_payload['reported']['sendInterval']):
+        # Set config
+        config['Telemetry']['interval'] = json_payload['desired']['sendInterval']
+        with open('pisensor.conf', 'w') as configfile:
+	        config.write(configfile)
 
     # var currentTelemetryConfig = reportedProperties["telemetryConfig"];
     #      var desiredTelemetryConfig = desiredProperties["telemetryConfig"];
