@@ -285,14 +285,14 @@ def is_connected():
 
 # check python version
 def check_version():
-    version = sys.version
-    return version
+    py_version = platform.python_version()
+    return py_version
 
 
 # check OS / platform version
 def check_platform():
-    platform = platform.platform()
-    return platform
+    os_platform = platform.platform()
+    return os_platform
 
 
 # run client
