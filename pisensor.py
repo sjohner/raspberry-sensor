@@ -334,10 +334,12 @@ def iothub_client_sample_run():
             print ( "IoTHubClient is reporting state" )
 
             reported_state = REPORTED_TXT % (
-                python_version,
-                platform_version,
+                str(python_version),
+                str(platform_version),
                 int(config['Telemetry']['interval'])
                 )
+
+            print ("reported state: %s" % reported_state)
             #reported_state = REPORTED_TXT
             client.send_reported_state(reported_state, len(reported_state), send_reported_state_callback, SEND_REPORTED_STATE_CONTEXT)
 
