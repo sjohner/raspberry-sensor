@@ -290,7 +290,7 @@ def check_version():
 
 
 # check OS / platform version
-def check_platform()
+def check_platform():
     platform = platform.platform()
     return platform
 
