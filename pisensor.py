@@ -69,7 +69,7 @@ CONNECTION_STRING = "HostName=jhnr-iotworkshop.azure-devices.net;DeviceId=jhnr-d
 
 # message texts
 MSG_TXT = "{\"deviceId\": \"jhnr-device\",\"temp_from_humidity\": %.2f,\"temp_from_pressure\": %.2f,\"temp_cpu\": %.2f,\"temp_corr\": %.2f,\"pressure\": %.2f,\"humidity\": %.2f}"
-REPORTED_TXT = "{\"pythonVersion\":\"2.7.2\",\"sendInterval\":50}"
+REPORTED_TXT = "{\"pythonVersion\":%s,\"platformVersion\":%s,\"sendInterval\":%d}"
 
 # some embedded platforms need certificate information
 
@@ -126,7 +126,7 @@ def device_twin_callback(update_state, payload, user_context):
     json_payload = json.loads(payload)
     if (json_payload['desired']['sendInterval'] != json_payload['reported']['sendInterval']):
         # Set config
-        config['Telemetry']['interval'] = json_payload['desired']['sendInterval']
+        config['Telemetry']['interval'] = str(json_payload['desired']['sendInterval'])
         with open('pisensor.conf', 'w') as configfile:
 	        config.write(configfile)
     else:
@@ -333,11 +333,12 @@ def iothub_client_sample_run():
         if client.protocol == IoTHubTransportProvider.MQTT:
             print ( "IoTHubClient is reporting state" )
 
-            # reported_state = REPORTED_TXT % (
-            #     python_version,
-            #     platform_version
-            #     )
-            reported_state = REPORTED_TXT
+            reported_state = REPORTED_TXT % (
+                python_version,
+                platform_version,
+                int(config['Telemetry']['interval'])
+                )
+            #reported_state = REPORTED_TXT
             client.send_reported_state(reported_state, len(reported_state), send_reported_state_callback, SEND_REPORTED_STATE_CONTEXT)
 
         # Send telemetry data every 60 seconds
@@ -395,7 +396,7 @@ def iothub_client_sample_run():
             print ( "IoTHubClient.send_event_async accepted message [%d] for transmission to IoT Hub." % MESSAGE_COUNT )
             status = client.get_send_status()
             print ( "Send status: %s" % status )
-            time.sleep(60)
+            time.sleep(int(config['Telemetry']['interval']))
             
             MESSAGE_COUNT += 1
 
