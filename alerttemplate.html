@@ -1,0 +1,23 @@
+<html>
+    <head>
+    <link href='https://fonts.googleapis.com/css?family=Sofia' rel='stylesheet'>
+    <style>
+    body {
+        font-family: 'Roboto';font-size: 22px;
+    }
+    </style>
+    </head>
+    <body>
+<h3>Message Content:</h3>
+<p>@{triggerBody()?['ContentData']}</p>
+
+<h3>Outside Weather </h3>
+<ul>
+<li>Conditions: @{body('Get_current_weather')?['responses']?['weather']?['current']?['cap']}</li>
+<li>Current Temperature: @{body('Get_current_weather')?['responses']?['weather']?['current']?['temp']} @{body('Get_current_weather')?['units']?['temperature']}</li>
+<li>Pressure: @{body('Get_current_weather')?['responses']?['weather']?['current']?['baro']}</li>
+<li>Humidity: @{body('Get_current_weather')?['responses']?['weather']?['current']?['rh']}</li>
+</ul>
+<p>Check out MSN Weather for more details: @{body('Get_current_weather')?['responses']?['source']?['clickThrough']}</p>
+</body>
+</html>
