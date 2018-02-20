@@ -68,7 +68,7 @@ CONNECTION_STRING = "HostName=jhnr-iotworkshop.azure-devices.net;DeviceId=jhnr-d
 
 # message texts
 MSG_TXT = "{\"deviceId\": \"jhnr-device\",\"temp_from_humidity\": %.2f,\"temp_from_pressure\": %.2f,\"temp_cpu\": %.2f,\"temp_corr\": %.2f,\"pressure\": %.2f,\"humidity\": %.2f}"
-REPORTED_TXT = "{\"pythonVersion\": %2f,\"osVersion\": %s}"
+REPORTED_TXT = "{\"pythonVersion\": %s,\"osVersion\": %s}"
 
 # some embedded platforms need certificate information
 
