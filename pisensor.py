@@ -125,7 +125,7 @@ def device_twin_callback(update_state, payload, user_context):
 
     
     j = json.loads(payload)
-    print j['desired']['interval']
+    print j['desired']['sendInterval']
 
     # var currentTelemetryConfig = reportedProperties["telemetryConfig"];
     #      var desiredTelemetryConfig = desiredProperties["telemetryConfig"];
