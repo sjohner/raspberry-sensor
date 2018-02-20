@@ -69,7 +69,7 @@ CONNECTION_STRING = "HostName=jhnr-iotworkshop.azure-devices.net;DeviceId=jhnr-d
 
 # message texts
 MSG_TXT = "{\"deviceId\": \"jhnr-device\",\"temp_from_humidity\": %.2f,\"temp_from_pressure\": %.2f,\"temp_cpu\": %.2f,\"temp_corr\": %.2f,\"pressure\": %.2f,\"humidity\": %.2f}"
-REPORTED_TXT = "{\"pythonVersion\":"%s",\"platformVersion\":"%s",\"sendInterval\":%d}"
+REPORTED_TXT = "{\"pythonVersion\":\"%s\",\"platformVersion\":\"%s\",\"sendInterval\":%d}"
 
 # some embedded platforms need certificate information
 
@@ -329,14 +329,15 @@ def iothub_client_sample_run():
         # Send reported state once the client starts
         python_version = check_version()
         platform_version = check_platform()
+        send_interval = int(config['Telemetry']['interval'])
 
         if client.protocol == IoTHubTransportProvider.MQTT:
             print ( "IoTHubClient is reporting state" )
 
             reported_state = REPORTED_TXT % (
-                str(python_version),
-                str(platform_version),
-                int(config['Telemetry']['interval'])
+                python_version,
+                platform_version,
+                send_interval
                 )
 
             print ("reported state: %s" % reported_state)
