@@ -13,6 +13,7 @@ import os
 import platform
 import sys
 import configparser
+import json
 import iothub_client
 from iothub_client import IoTHubClient, IoTHubClientError, IoTHubTransportProvider, IoTHubClientResult
 from iothub_client import IoTHubMessage, IoTHubMessageDispositionResult, IoTHubError, DeviceMethodReturnValue
@@ -121,6 +122,25 @@ def connection_status_callback(result, reason, user_context):
 
 def device_twin_callback(update_state, payload, user_context):
     global TWIN_CALLBACKS
+
+    
+    j = json.loads(payload)
+    print j['desired']['interval']
+
+    # var currentTelemetryConfig = reportedProperties["telemetryConfig"];
+    #      var desiredTelemetryConfig = desiredProperties["telemetryConfig"];
+
+    #      if ((desiredTelemetryConfig != null) && (desiredTelemetryConfig["configId"] != currentTelemetryConfig["configId"]))
+    #      {
+    #          Console.WriteLine("\nInitiating config change");
+    #          currentTelemetryConfig["status"] = "Pending";
+    #          currentTelemetryConfig["pendingConfig"] = desiredTelemetryConfig;
+
+    #          await Client.UpdateReportedPropertiesAsync(reportedProperties);
+
+    #          CompleteConfigChange();
+    #      }
+
     print ( "")
     print ( "Twin callback called with:")
     print ( "updateStatus: %s" % update_state )
