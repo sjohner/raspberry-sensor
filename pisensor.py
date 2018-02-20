@@ -125,8 +125,13 @@ def device_twin_callback(update_state, payload, user_context):
 
     json_payload = json.loads(payload)
     if (json_payload['desired']['sendInterval'] != json_payload['reported']['sendInterval']):
-        # Set config
-        config['Telemetry']['interval'] = str(json_payload['desired']['sendInterval'])
+         # Set config
+        reported_interval = int(config['Telemetry']['interval'])
+        desired_interval = json_payload['desired']['sendInterval']
+
+        print ("Desired sendInterval %d does not match with reported sendInterval %d" % desired_interval, reported_interval)
+        
+        config['Telemetry']['interval'] == str(json_payload['desired']['sendInterval'])
         with open('pisensor.conf', 'w') as configfile:
 	        config.write(configfile)
     else:
