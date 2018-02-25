@@ -270,7 +270,7 @@ def set_sendinterval(interval):
 
     # Blink to indicate successful config change
     blink_leds(0, 255, 0)
-    display_message("Send interval is now %d seconds" % interval)
+    display_message("Send interval %d seconds" % interval)
 
 # Set temp alert in config file
 def set_tempalert(temperature):
@@ -285,7 +285,7 @@ def set_tempalert(temperature):
 
     # Blink to indicate successful config change
     blink_leds(0, 255, 0)
-    display_message("Temperature alert is now %d degrees" % temperature)
+    display_message("Temp alert %d degrees" % temperature)
 
 # Get CPU temperature
 def get_cpu_temp():
@@ -310,13 +310,8 @@ def get_smooth(x):
 
 # Blink Sense HAT leds
 def blink_leds(red, green, blue):
-    # Set color
-    r = 255
-    g = 0
-    b = 0
-    # Blink LEDs
     for x in range(3):
-        sense.clear((r, g, b))
+        sense.clear((red, green, blue))
         time.sleep(1)
         sense.clear()
         time.sleep(1)
