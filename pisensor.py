@@ -91,7 +91,7 @@ def receive_message_callback(message, counter):
     global RECEIVE_CALLBACKS
     message_buffer = message.get_bytearray()
     size = len(message_buffer)
-    print ( "Received Message [%d]:" % counter )
+    print ( "\nReceived Message [%d]:" % counter )
     print ( "    Data: <<<%s>>> & Size=%d" % (message_buffer[:size].decode('utf-8'), size) )
     map_properties = message.properties()
     key_value_pair = map_properties.get_internals()
@@ -104,7 +104,7 @@ def receive_message_callback(message, counter):
 
 def send_confirmation_callback(message, result, user_context):
     global SEND_CALLBACKS
-    print ( "Confirmation[%d] received for message with result = %s" % (user_context, result) )
+    print ( "\nConfirmation[%d] received for message with result = %s" % (user_context, result) )
     map_properties = message.properties()
     print ( "    message_id: %s" % message.message_id )
     print ( "    correlation_id: %s" % message.correlation_id )
@@ -116,7 +116,7 @@ def send_confirmation_callback(message, result, user_context):
 
 def connection_status_callback(result, reason, user_context):
     global CONNECTION_STATUS_CALLBACKS
-    print ( "Connection status changed[%d] with:" % (user_context) )
+    print ( "\nConnection status changed[%d] with:" % (user_context) )
     print ( "    reason: %d" % reason )
     print ( "    result: %s" % result )
     CONNECTION_STATUS_CALLBACKS += 1
@@ -125,38 +125,36 @@ def connection_status_callback(result, reason, user_context):
 
 def device_twin_callback(update_state, payload, user_context):
     global TWIN_CALLBACKS
-
-    # Get values from json payload
-    json_payload = json.loads(payload)
-    desired_send_interval = int(payload['desired']['sendInterval'])
-    desired_temp_alert = int(payload['desired']['tempAlert'])
-    reported_send_interval = int(json_payload['reported']['sendInterval'])
-    reported_temp_alert = int(json_payload['reported']['tempAlert'])
-
-    # Check if desired state is equal reported state 
-    if (desired_send_interval != reported_send_interval):      
-        print ( "Desired sendInterval %d does not match with configured sendInterval %d" % (desired_send_interval, reported_send_interval))
-        # Set send interval in config file
-        set_sendinterval(desired_send_interval)
-    elif (desired_temp_alert != reported_temp_alert):
-        print ( "Desired tempAlert %d does not match with configured tempAlert %d" % (desired_temp_alert, reported_temp_alert))
-        # Set temperature alert in config file
-        set_tempalert(desired_temp_alert)
-    else:
-        print (" Desired state matches with reported state")
-
-    print ( "")
-    print ( "Twin callback called with:")
+    print ( "\nTwin callback called with:")
     print ( "updateStatus: %s" % update_state )
     print ( "context: %s" % user_context )
     print ( "payload: %s" % payload )
     TWIN_CALLBACKS += 1
     print ( "Total calls confirmed: %d\n" % TWIN_CALLBACKS )
+    
+    # Get values from json payload
+    json_payload = json.loads(payload)
+    desired_send_interval = int(json_payload['desired']['sendInterval'])
+    desired_temp_alert = int(json_payload['desired']['tempAlert'])
+    reported_send_interval = int(json_payload['reported']['sendInterval'])
+    reported_temp_alert = int(json_payload['reported']['tempAlert'])
+
+    # Check if desired state is equal reported state 
+    if (desired_send_interval != reported_send_interval):      
+        print ( "\nDesired sendInterval %d does not match with configured sendInterval %d" % (desired_send_interval, reported_send_interval))
+        # Set send interval in config file
+        set_sendinterval(desired_send_interval)
+    elif (desired_temp_alert != reported_temp_alert):
+        print ( "\nDesired tempAlert %d does not match with configured tempAlert %d" % (desired_temp_alert, reported_temp_alert))
+        # Set temperature alert in config file
+        set_tempalert(desired_temp_alert)
+    else:
+        print ("\nDesired state matches with reported state")
 
 
 def send_reported_state_callback(status_code, user_context):
     global SEND_REPORTED_STATE_CALLBACKS
-    print ( "Confirmation[%d] for reported state received with:" % (user_context) )
+    print ( "\nConfirmation[%d] for reported state received with:" % (user_context) )
     print ( "    status_code: %d" % status_code )
     SEND_REPORTED_STATE_CALLBACKS += 1
     print ( "    Total calls confirmed: %d" % SEND_REPORTED_STATE_CALLBACKS )
@@ -167,7 +165,9 @@ def device_method_callback(method_name, payload, user_context):
     print ( "\nMethod callback called with:\nmethodName = %s\npayload = %s\ncontext = %s" % (method_name, payload, user_context) )
     METHOD_CALLBACKS += 1
 
-    if method_name == "blinkError":
+    if method_name == "displayMessage":
+        #displayMessage()
+    elif method_name == "blinkError":
         blinkError()
     elif method_name == "blinkSuccess":
         blinkSuccess()
@@ -248,7 +248,7 @@ def report_state():
 
     # Send reported state
     if client.protocol == IoTHubTransportProvider.MQTT:
-        print ( "IoTHubClient is reporting state" )
+        print ( "\nIoTHubClient is reporting state" )
         print ( "   Python version: %s" % python_version)
         print ( "   Platform version: %s" % platform_version)
         print ( "   Send interval: %d" % send_interval)
@@ -350,6 +350,14 @@ def blinkSuccess():
         time.sleep(1)
 
 
+# display message
+def displayMessage(message):
+    print ( "Displaying following message on Sense HAT" )
+    print ( "   \"%s\"" % message)
+    # display message on Sense HAT
+    sense.show_message(message)
+
+
 # update device os
 def updateDeviceOS():
     print ("Updating device operating system")
@@ -384,9 +392,9 @@ def iothub_client_run():
         while True:
             send_interval = int(config['Telemetry']['sendInterval'])
             temp_alert = int(config['Telemetry']['tempAlert'])
-            print ( "Message send interval set to %d" % send_interval)
+            print ( "\nMessage send interval set to %d" % send_interval)
 
-            print ( "Collecting telemetry data")
+            print ( "\nCollecting telemetry data")
             # CPU temperature
             t_cpu = get_cpu_temp()
             print ( "   CPU temperature %f" % t_cpu)            
@@ -416,7 +424,7 @@ def iothub_client_run():
             p = round(p, 1)
             h = round(h, 1)
 
-            print ( "IoTHubClient sending message %d" % MESSAGE_COUNT )
+            print ( "\nIoTHubClient sending message %d" % MESSAGE_COUNT )
             
             # Generate message text with given senor output
             msg_txt_formatted = MESSAGE_TXT % (
