@@ -1,0 +1,9 @@
+{
+    "deviceId": "jhnr-device",
+    "temp_from_humidity": 30.4,
+    "temp_from_pressure": 30.4,
+    "temp_cpu": 42.93,
+    "temp_corr": 70.7,
+    "pressure": 954.7,
+    "humidity": 35.4
+}

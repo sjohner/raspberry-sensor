@@ -73,7 +73,7 @@ CONNECTION_STRING = str(config['Default']['connectionstring'])
 
 # message texts
 MESSAGE_TXT = "{\"deviceId\": \"jhnr-device\",\"temp_from_humidity\": %.2f,\"temp_from_pressure\": %.2f,\"temp_cpu\": %.2f,\"temp_corr\": %.2f,\"pressure\": %.2f,\"humidity\": %.2f}"
-REPORTED_TXT = "{\"newState\":null,\"pythonVersion\":\"%s\",\"platformVersion\":\"%s\",\"sendInterval\":%d,\"tempAlert\":%d}"
+REPORTED_TXT = "{\"pythonVersion\":\"%s\",\"platformVersion\":\"%s\",\"sendInterval\":%d,\"tempAlert\":%d}"
 
 
 # some embedded platforms need certificate information
@@ -176,7 +176,7 @@ def device_method_callback(method_name, payload, user_context):
     
     print ( "Total calls confirmed: %d\n" % METHOD_CALLBACKS )
     device_method_return_value = DeviceMethodReturnValue()
-    device_method_return_value.response = "{ \"This is the response from the device\" }"
+    device_method_return_value.response = "{ \"methodName\":\"%s\" }" % method_name
     device_method_return_value.status = 200
     return device_method_return_value
 
