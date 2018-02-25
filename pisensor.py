@@ -125,16 +125,14 @@ def connection_status_callback(result, reason, user_context):
 
 def device_twin_callback(update_state, payload, user_context):
     global TWIN_CALLBACKS
-    print ( "Twin callback called with:")
+    print ( "\nTwin callback called with:")
     print ( "updateStatus: %s" % update_state )
     print ( "context: %s" % user_context )
     print ( "payload: %s" % payload )
     TWIN_CALLBACKS += 1
     print ( "Total calls confirmed: %d\n" % TWIN_CALLBACKS )
-    
-    print (type(update_state))
 
-    if (update_state.lower() is "partial"):
+    if (str(update_state) is "PARTIAL"):
         print ("Updating config with desired values")
         # Get desired values from json payload
         json_payload = json.loads(payload)
@@ -184,7 +182,7 @@ def send_reported_state_callback(status_code, user_context):
 
 def device_method_callback(method_name, payload, user_context):
     global METHOD_CALLBACKS
-    print ( "Method callback called with:\nmethodName = %s\npayload = %s\ncontext = %s" % (method_name, payload, user_context) )
+    print ( "\nMethod callback called with:\nmethodName = %s\npayload = %s\ncontext = %s" % (method_name, payload, user_context) )
     METHOD_CALLBACKS += 1
 
     if method_name == "displayMessage":
@@ -448,7 +446,7 @@ def iothub_client_run():
             p = round(p, 1)
             h = round(h, 1)
 
-            print ( "\nIoTHubClient sending message %d" % MESSAGE_COUNT )
+            print ( "IoTHubClient sending message %d" % MESSAGE_COUNT )
             
             # Generate message text with given senor output
             msg_txt_formatted = MESSAGE_TXT % (
