@@ -91,7 +91,7 @@ def receive_message_callback(message, counter):
     global RECEIVE_CALLBACKS
     message_buffer = message.get_bytearray()
     size = len(message_buffer)
-    print ( "\nReceived Message [%d]:" % counter )
+    print ( "Received Message [%d]:" % counter )
     print ( "    Data: <<<%s>>> & Size=%d" % (message_buffer[:size].decode('utf-8'), size) )
     map_properties = message.properties()
     key_value_pair = map_properties.get_internals()
@@ -104,7 +104,7 @@ def receive_message_callback(message, counter):
 
 def send_confirmation_callback(message, result, user_context):
     global SEND_CALLBACKS
-    print ( "\nConfirmation[%d] received for message with result = %s" % (user_context, result) )
+    print ( "Confirmation[%d] received for message with result = %s" % (user_context, result) )
     map_properties = message.properties()
     print ( "    message_id: %s" % message.message_id )
     print ( "    correlation_id: %s" % message.correlation_id )
@@ -116,7 +116,7 @@ def send_confirmation_callback(message, result, user_context):
 
 def connection_status_callback(result, reason, user_context):
     global CONNECTION_STATUS_CALLBACKS
-    print ( "\nConnection status changed[%d] with:" % (user_context) )
+    print ( "Connection status changed[%d] with:" % (user_context) )
     print ( "    reason: %d" % reason )
     print ( "    result: %s" % result )
     CONNECTION_STATUS_CALLBACKS += 1
@@ -125,15 +125,15 @@ def connection_status_callback(result, reason, user_context):
 
 def device_twin_callback(update_state, payload, user_context):
     global TWIN_CALLBACKS
-    print ( "\nTwin callback called with:")
+    print ( "Twin callback called with:")
     print ( "updateStatus: %s" % update_state )
     print ( "context: %s" % user_context )
     print ( "payload: %s" % payload )
     TWIN_CALLBACKS += 1
     print ( "Total calls confirmed: %d\n" % TWIN_CALLBACKS )
     
-    
     if (update_state == "PARTIAL"):
+        print ("Updating config with desired values")
         # Get desired values from json payload
         json_payload = json.loads(payload)
         desired_send_interval = int(json_payload['sendInterval'])
@@ -171,7 +171,7 @@ def device_twin_callback(update_state, payload, user_context):
 
 def send_reported_state_callback(status_code, user_context):
     global SEND_REPORTED_STATE_CALLBACKS
-    print ( "\nConfirmation[%d] for reported state received with:" % (user_context) )
+    print ( "Confirmation[%d] for reported state received with:" % (user_context) )
     print ( "    status_code: %d" % status_code )
     SEND_REPORTED_STATE_CALLBACKS += 1
     print ( "    Total calls confirmed: %d" % SEND_REPORTED_STATE_CALLBACKS )
@@ -179,7 +179,7 @@ def send_reported_state_callback(status_code, user_context):
 
 def device_method_callback(method_name, payload, user_context):
     global METHOD_CALLBACKS
-    print ( "\nMethod callback called with:\nmethodName = %s\npayload = %s\ncontext = %s" % (method_name, payload, user_context) )
+    print ( "Method callback called with:\nmethodName = %s\npayload = %s\ncontext = %s" % (method_name, payload, user_context) )
     METHOD_CALLBACKS += 1
 
     if method_name == "displayMessage":
