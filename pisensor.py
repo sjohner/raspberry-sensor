@@ -138,18 +138,14 @@ def device_twin_callback(update_state, payload, user_context):
         json_payload = json.loads(payload)
         desired_send_interval = int(json_payload['sendInterval'])
         desired_temp_alert = int(json_payload['tempAlert'])
-
         # Get actual config values
         actual_send_interval = int(config['Telemetry']['sendinterval'])
         actual_temp_alert = int(config['Telemetry']['tempalert'])
-
         # Modify config if applicable
         if (desired_send_interval != actual_send_interval):
             set_sendinterval(desired_send_interval)
-
         if (desired_temp_alert != actual_temp_alert):
             set_tempalert(desired_temp_alert)
-
         # Report new state
         report_state()
 
