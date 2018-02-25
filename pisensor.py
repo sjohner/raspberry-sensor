@@ -427,7 +427,7 @@ def iothub_client_run():
             print ( "IoTHubClient.send_event_async accepted message [%d] for transmission to IoT Hub." % MESSAGE_COUNT )
             status = client.get_send_status()
             print ( "Send status: %s" % status )
-            time.sleep()
+            time.sleep(send_interval)
             
             MESSAGE_COUNT += 1
 
