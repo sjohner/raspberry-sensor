@@ -132,6 +132,9 @@ def device_twin_callback(update_state, payload, user_context):
     TWIN_CALLBACKS += 1
     print ( "Total calls confirmed: %d\n" % TWIN_CALLBACKS )
 
+    print (type(update_state))
+    print (str(update_state))
+
     if (str(update_state) is "PARTIAL"):
         print ("Updating config with desired values")
         # Get desired values from json payload
