@@ -6,6 +6,7 @@
 # Licensed under the MIT license. See LICENSE file in the project root for
 # full license information.
 
+from __future__ import print_function
 import subprocess
 import random
 import time
@@ -21,7 +22,6 @@ from iothub_client import IoTHubClientRetryPolicy, GetRetryPolicyReturnValue
 from iothub_client_args import get_iothub_opt, OptionError
 from sense_hat import SenseHat
 from termcolor import colored
-from __future__ import print_function
 
 # Initialize sense hat
 sense = SenseHat()
