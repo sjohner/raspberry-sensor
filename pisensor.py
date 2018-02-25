@@ -28,6 +28,9 @@ sense = SenseHat()
 config = configparser.ConfigParser()
 config.read('pisensor.conf')
 
+# global IoT Hub client to be assigned by iothub_client_init()
+client = None
+
 # HTTP options
 # Because it can poll "after 9 seconds" polls will happen effectively
 # at ~10 seconds.
@@ -183,6 +186,8 @@ def blob_upload_conf_callback(result, user_context):
 
 # prepare iothub client
 def iothub_client_init():
+    global client
+
     client = IoTHubClient(CONNECTION_STRING, PROTOCOL)
     if client.protocol == IoTHubTransportProvider.HTTP:
         client.set_option("timeout", TIMEOUT)
@@ -214,7 +219,7 @@ def iothub_client_init():
     print ( "GetRetryPolicy returned: retryPolicy = %d" %  retryPolicyReturn.retryPolicy)
     print ( "GetRetryPolicy returned: retryTimeoutLimitInSeconds = %d" %  retryPolicyReturn.retryTimeoutLimitInSeconds)
 
-    return client
+    #return client
 
 
 def print_last_message_time(client):
@@ -331,14 +336,6 @@ def blinkSuccess():
         time.sleep(1)
 
 
-# restart service
-def restartService():
-    print ("Restarting Service")
-    #subprocess.call(['sudo', 'systemctl', 'restart', 'pytempsensor.service'])
-    print ("Restarted")
-    #subprocess.call(['sudo', 'systemctl', 'start', 'pytempsensor.service'])
-
-
 # update device os
 def updateDeviceOS():
     print ("Updating device operating system")
@@ -359,10 +356,12 @@ def check_platform():
 
 
 # run client
-def iothub_client_sample_run():
+def iothub_client_run():
     global MESSAGE_COUNT
+    #global client
     try:
-        client = iothub_client_init()
+        # Initialize global IoT Hub client
+        iothub_client_init()
 
         # Send reported state once the client starts
         report_state()
@@ -463,4 +462,4 @@ if __name__ == '__main__':
     print ( "    Protocol %s" % PROTOCOL )
     print ( "    Connection string=%s" % CONNECTION_STRING )
 
-    iothub_client_sample_run()
+    iothub_client_run()
