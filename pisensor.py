@@ -134,22 +134,24 @@ def device_twin_callback(update_state, payload, user_context):
     
     # Get values from json payload
     json_payload = json.loads(payload)
-    desired_send_interval = int(json_payload['desired']['sendInterval'])
-    desired_temp_alert = int(json_payload['desired']['tempAlert'])
-    reported_send_interval = int(json_payload['reported']['sendInterval'])
-    reported_temp_alert = int(json_payload['reported']['tempAlert'])
+    # desired_send_interval = int(json_payload['desired']['sendInterval'])
+    # desired_temp_alert = int(json_payload['desired']['tempAlert'])
+    # reported_send_interval = int(json_payload['reported']['sendInterval'])
+    # reported_temp_alert = int(json_payload['reported']['tempAlert'])
+    desired_send_interval = int(json_payload['sendInterval'])
+    desired_temp_alert = int(json_payload['tempAlert'])
 
     # Check if desired state is equal reported state 
-    if (desired_send_interval != reported_send_interval):      
-        print ( "\nDesired sendInterval %d does not match with configured sendInterval %d" % (desired_send_interval, reported_send_interval))
+    # if (desired_send_interval != reported_send_interval):      
+        #print ( "\nDesired sendInterval %d does not match with configured sendInterval %d" % (desired_send_interval, reported_send_interval))
         # Set send interval in config file
         set_sendinterval(desired_send_interval)
-    elif (desired_temp_alert != reported_temp_alert):
-        print ( "\nDesired tempAlert %d does not match with configured tempAlert %d" % (desired_temp_alert, reported_temp_alert))
+    #elif (desired_temp_alert != reported_temp_alert):
+        #print ( "\nDesired tempAlert %d does not match with configured tempAlert %d" % (desired_temp_alert, reported_temp_alert))
         # Set temperature alert in config file
         set_tempalert(desired_temp_alert)
-    else:
-        print ("\nDesired state matches with reported state")
+    #else:
+    #    print ("\nDesired state matches with reported state")
 
 
 def send_reported_state_callback(status_code, user_context):
@@ -166,7 +168,7 @@ def device_method_callback(method_name, payload, user_context):
     METHOD_CALLBACKS += 1
 
     if method_name == "displayMessage":
-        displayMessage("Test")
+        displayMessage(payload)
     elif method_name == "blinkError":
         blinkError()
     elif method_name == "blinkSuccess":
