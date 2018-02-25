@@ -132,24 +132,39 @@ def device_twin_callback(update_state, payload, user_context):
     TWIN_CALLBACKS += 1
     print ( "Total calls confirmed: %d\n" % TWIN_CALLBACKS )
     
-    # Get values from json payload
-    json_payload = json.loads(payload)
+    
+    if (update_state == "PARTIAL"):
+        # Get desired values from json payload
+        json_payload = json.loads(payload)
+        desired_send_interval = int(json_payload['sendInterval'])
+        desired_temp_alert = int(json_payload['tempAlert'])
+
+        # Get actual config values
+        actual_send_interval = int(config['Telemetry']['sendinterval'])
+        actual_temp_alert = int(config['Telemetry']['tempalert'])
+
+        # Modify config if applicable
+        if (desired_send_interval != actual_send_interval):
+            set_sendinterval(desired_send_interval)
+
+        if (desired_temp_alert != actual_temp_alert):
+            set_tempalert(desired_temp_alert)
+    
     # desired_send_interval = int(json_payload['desired']['sendInterval'])
     # desired_temp_alert = int(json_payload['desired']['tempAlert'])
     # reported_send_interval = int(json_payload['reported']['sendInterval'])
     # reported_temp_alert = int(json_payload['reported']['tempAlert'])
-    desired_send_interval = int(json_payload['sendInterval'])
-    desired_temp_alert = int(json_payload['tempAlert'])
+    
 
     # Check if desired state is equal reported state 
     # if (desired_send_interval != reported_send_interval):      
         #print ( "\nDesired sendInterval %d does not match with configured sendInterval %d" % (desired_send_interval, reported_send_interval))
         # Set send interval in config file
-    set_sendinterval(desired_send_interval)
+    
     #elif (desired_temp_alert != reported_temp_alert):
         #print ( "\nDesired tempAlert %d does not match with configured tempAlert %d" % (desired_temp_alert, reported_temp_alert))
         # Set temperature alert in config file
-    set_tempalert(desired_temp_alert)
+    #set_tempalert(desired_temp_alert)
     #else:
     #    print ("\nDesired state matches with reported state")
 
@@ -266,13 +281,12 @@ def report_state():
 
 
 # Set send interval in config file
-def set_sendinterval(payload):
-    send_interval = int(config['Telemetry']['sendinterval'])
-    desired_interval = payload['desired']['sendInterval']
-    print ("Desired sendInterval %d does not match with configured sendInterval %d" % (desired_interval, send_interval))
+def set_sendinterval(interval):
+    actual_send_interval = int(config['Telemetry']['sendinterval'])
+    print ("Changing send interval from %d to %d" % (actual_send_interval, interval))
 
-    # Set send interval in config file accoring to desired state
-    config['Telemetry']['interval'] = str(json_payload['desired']['sendInterval'])
+    # Set send interval in config file
+    config['Telemetry']['interval'] = str(interval)
     # Write config file
     with open('pisensor.conf', 'w') as configfile:
 	    config.write(configfile)
@@ -286,6 +300,9 @@ def set_sendinterval(payload):
 
 # Set temp alert in config file
 def set_tempalert(temperature):
+    actual_alert_temperature = int(config['Telemetry']['sendinterval'])
+    print ("Changing alert temperature from %d to %d" % (actual_alert_temperature, temperature))
+
     # Set temperature alert in config file
     config['Telemetry']['tempalert'] = str(temperature)
     # Write config file
