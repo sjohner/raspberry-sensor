@@ -65,15 +65,14 @@ PROTOCOL = IoTHubTransportProvider.MQTT
 
 # String containing Hostname, Device Id & Device Key in the format:
 # "HostName=<host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>"
-CONNECTION_STRING = "HostName=jhnr-iotworkshop.azure-devices.net;DeviceId=jhnr-device;SharedAccessKey=HzGRYoCY0SsPBalR/Y6e9Rz06mheiDR6dXbMmU/Y+B4="
+CONNECTION_STRING = str(config['Default']['connectionstring'])
 
 # message texts
-MSG_TXT = "{\"deviceId\": \"jhnr-device\",\"temp_from_humidity\": %.2f,\"temp_from_pressure\": %.2f,\"temp_cpu\": %.2f,\"temp_corr\": %.2f,\"pressure\": %.2f,\"humidity\": %.2f}"
-REPORTED_TXT = "{\"pythonVersion\":\"%s\",\"platformVersion\":\"%s\",\"sendInterval\":%d}"
+MESSAGE_TXT = "{\"deviceId\": \"jhnr-device\",\"temp_from_humidity\": %.2f,\"temp_from_pressure\": %.2f,\"temp_cpu\": %.2f,\"temp_corr\": %.2f,\"pressure\": %.2f,\"humidity\": %.2f}"
+REPORTED_TXT = "{\"pythonVersion\":\"%s\",\"platformVersion\":\"%s\",\"sendInterval\":%d,\"tempAlert\":%d}"
+
 
 # some embedded platforms need certificate information
-
-
 def set_certificates(client):
     from iothub_client_cert import CERTIFICATES
     try:
@@ -124,32 +123,18 @@ def device_twin_callback(update_state, payload, user_context):
     global TWIN_CALLBACKS
 
     json_payload = json.loads(payload)
+
+    # Check if desired state is equal reported state 
     if (json_payload['desired']['sendInterval'] != json_payload['reported']['sendInterval']):
-         # Set config
-        reported_interval = int(config['Telemetry']['interval'])
-        desired_interval = json_payload['desired']['sendInterval']
-
-        print ("Desired sendInterval %d does not match with reported sendInterval %d" % (desired_interval, reported_interval))
-
-        config['Telemetry']['interval'] = str(json_payload['desired']['sendInterval'])
-        with open('pisensor.conf', 'w') as configfile:
-	        config.write(configfile)
+        print ( "Desired sendInterval %d does not match with configured sendInterval %d" % (json_payload['desired']['sendInterval'], json_payload['reported']['sendInterval']))
+        # Set send interval in config file
+        set_sendinterval(payload['desired']['sendInterval'])
+    elif (json_payload['desired']['tempAlert'] != json_payload['reported']['tempAlert']):
+        print ( "Desired tempAlert %d does not match with configured tempAlert %d" % (json_payload['desired']['tempAlert'], json_payload['reported']['tempAlert']))
+        # Set temperature alert in config file
+        set_tempalert(payload['desired']['tempAlert'])
     else:
-        print ("Desired sendInterval matches with reported sendInterval")
-
-    # var currentTelemetryConfig = reportedProperties["telemetryConfig"];
-    #      var desiredTelemetryConfig = desiredProperties["telemetryConfig"];
-
-    #      if ((desiredTelemetryConfig != null) && (desiredTelemetryConfig["configId"] != currentTelemetryConfig["configId"]))
-    #      {
-    #          Console.WriteLine("\nInitiating config change");
-    #          currentTelemetryConfig["status"] = "Pending";
-    #          currentTelemetryConfig["pendingConfig"] = desiredTelemetryConfig;
-
-    #          await Client.UpdateReportedPropertiesAsync(reportedProperties);
-
-    #          CompleteConfigChange();
-    #      }
+        print (" Desired state matches with reported state")
 
     print ( "")
     print ( "Twin callback called with:")
@@ -158,11 +143,6 @@ def device_twin_callback(update_state, payload, user_context):
     print ( "payload: %s" % payload )
     TWIN_CALLBACKS += 1
     print ( "Total calls confirmed: %d\n" % TWIN_CALLBACKS )
-
-    # Set config
-    #config['Telemetry']['interval'] = '50'
-    #with open('c:/Users/johners/Desktop/pytempsensor.conf', 'w') as configfile:
-	    #config.write(configfile)
 
 
 def send_reported_state_callback(status_code, user_context):
@@ -175,18 +155,18 @@ def send_reported_state_callback(status_code, user_context):
 
 def device_method_callback(method_name, payload, user_context):
     global METHOD_CALLBACKS
+    print ( "\nMethod callback called with:\nmethodName = %s\npayload = %s\ncontext = %s" % (method_name, payload, user_context) )
+    METHOD_CALLBACKS += 1
 
     if method_name == "blinkError":
         blinkError()
-    if method_name == "restartService":
-        print ( "---RESTART SERVICE---")
-        restartService()
-    if method_name == "updateDevice":
-        print ( "Update" )
-        updateDevice()
-
-    print ( "\nMethod callback called with:\nmethodName = %s\npayload = %s\ncontext = %s" % (method_name, payload, user_context) )
-    METHOD_CALLBACKS += 1
+    elif method_name == "blinkSuccess":
+        blinkSuccess()
+    elif method_name == "updateDeviceOS":
+        updateDeviceOS()
+    else:
+        print ("Method not found")
+    
     print ( "Total calls confirmed: %d\n" % METHOD_CALLBACKS )
     device_method_return_value = DeviceMethodReturnValue()
     device_method_return_value.response = "{ \"This is the response from the device\" }"
@@ -249,6 +229,55 @@ def print_last_message_time(client):
             print ( iothub_client_error )
 
 
+# Report state to IoT Hub
+def report_state():
+    # Gather state information
+    python_version = check_version()
+    platform_version = check_platform()
+    send_interval = int(config['Telemetry']['sendinterval'])
+    temp_alert = int(config['Telemetry']['tempalert'])
+
+    # Send reported state
+    if client.protocol == IoTHubTransportProvider.MQTT:
+        print ( "IoTHubClient is reporting state" )
+        reported_state = REPORTED_TXT % (
+            python_version,
+            platform_version,
+            send_interval,
+            temp_alert
+            )
+        print ("reported state: %s" % reported_state)
+        client.send_reported_state(reported_state, len(reported_state), send_reported_state_callback, SEND_REPORTED_STATE_CONTEXT)
+
+
+# Set send interval in config file
+def set_sendinterval(payload):
+    send_interval = int(config['Telemetry']['sendinterval'])
+    desired_interval = payload['desired']['sendInterval']
+    print ("Desired sendInterval %d does not match with configured sendInterval %d" % (desired_interval, send_interval))
+
+    # Set send interval in config file accoring to desired state
+    config['Telemetry']['interval'] = str(json_payload['desired']['sendInterval'])
+    # Write config file
+    with open('pisensor.conf', 'w') as configfile:
+	    config.write(configfile)
+
+    # Report new state
+    report_state()
+
+
+# Set temp alert in config file
+def set_tempalert(temperature):
+    # Set temperature alert in config file
+    config['Telemetry']['tempalert'] = str(temperature)
+    # Write config file
+    with open('pisensor.conf', 'w') as configfile:
+	    config.write(configfile)
+
+    # Report new state
+    report_state()
+
+
 # Get CPU temperature
 def get_cpu_temp():
     try:
@@ -274,12 +303,27 @@ def get_smooth(x):
 
 # blink on error
 def blinkError():
-    print ( "Direct method blinkError called." )
-
+    print ( "LEDs indicating error" )
+    # Set color to red
     r = 255
     g = 0
     b = 0
+    # Blink LEDs
+    for x in range(3):
+        sense.clear((r, g, b))
+        time.sleep(1)
+        sense.clear()
+        time.sleep(1)
 
+
+# blink on success
+def blinkSuccess():
+    print ( "LEDs indicating success" )
+    # Set color to green
+    r = 0
+    g = 255
+    b = 0
+    # Blink LEDs
     for x in range(3):
         sense.clear((r, g, b))
         time.sleep(1)
@@ -296,21 +340,10 @@ def restartService():
 
 
 # update device os
-def updateDevice():
-    print ("Updating Devices")
+def updateDeviceOS():
+    print ("Updating device operating system")
     subprocess.call(['sudo', 'apt-get', 'update'])
     subprocess.call(['sudo', 'apt-get', '-y', 'upgrade'])
-
-
-# check internet connection
-def is_connected():
-    try:
-        # connect to the host -- tells us if the host is actually reachable
-        socket.create_connection(("www.google.com", 80))
-        return True
-    except OSError:
-        pass
-    return False
 
 
 # check python version
@@ -332,36 +365,27 @@ def iothub_client_sample_run():
         client = iothub_client_init()
 
         # Send reported state once the client starts
-        python_version = check_version()
-        platform_version = check_platform()
-        send_interval = int(config['Telemetry']['interval'])
-
-        if client.protocol == IoTHubTransportProvider.MQTT:
-            print ( "IoTHubClient is reporting state" )
-
-            reported_state = REPORTED_TXT % (
-                python_version,
-                platform_version,
-                send_interval
-                )
-
-            print ("reported state: %s" % reported_state)
-            #reported_state = REPORTED_TXT
-            client.send_reported_state(reported_state, len(reported_state), send_reported_state_callback, SEND_REPORTED_STATE_CONTEXT)
+        report_state()
 
         # Send telemetry data every 60 seconds
         while True:
-            print ( "Reading CPU temperature" )
-            t_cpu = get_cpu_temp()
+            send_interval = int(config['Telemetry']['interval'])
+            print ( "Message send interval set to %d" % send_interval)
 
-            print ( "Reading SenseHAT sensors" )
+            t_cpu = get_cpu_temp()
+            print ( "Got CPU temperature %f" % t_cpu)            
+
             # Take readings from sensors
             # Note that get_temperature calls get_temperature_from_humidity which is closer to the cpu
             # https://pythonhosted.org/sense-hat/api/
             t1 = sense.get_temperature_from_humidity()
+            print ( "Got temperature from humidity sensor %f" % t1 )
             t2 = sense.get_temperature_from_pressure()
+            print ( "Got temperature from pressure sensor %f" % t2 )
             p = sense.get_pressure()
+            print ( "Got pressure %f" % p )
             h = sense.get_humidity()
+            print ( "Got humidity %f" % h )
 
             # Calculate the real temperature compesating CPU heating
             # http://yaab-arduino.blogspot.ch/2016/08/accurate-temperature-reading-sensehat.html
@@ -377,12 +401,12 @@ def iothub_client_sample_run():
             p = round(p, 1)
             h = round(h, 1)
 
-            print( "Found t1=%.1f  t2=%.1f  t_cpu=%.1f  t_corr=%.1f  p=%d  h=%d" % (t1, t2, t_cpu, t_corr, p, h) )
+            print( "Sending t1=%.1f  t2=%.1f  t_cpu=%.1f  t_corr=%.1f  p=%d  h=%d" % (t1, t2, t_cpu, t_corr, p, h) )
 
             print ( "IoTHubClient sending message %d" % MESSAGE_COUNT )
             
             # Generate message text with given senor output
-            msg_txt_formatted = MSG_TXT % (
+            msg_txt_formatted = MESSAGE_TXT % (
                 t1,
                 t2,
                 t_cpu,
@@ -404,7 +428,7 @@ def iothub_client_sample_run():
             print ( "IoTHubClient.send_event_async accepted message [%d] for transmission to IoT Hub." % MESSAGE_COUNT )
             status = client.get_send_status()
             print ( "Send status: %s" % status )
-            time.sleep(int(config['Telemetry']['interval']))
+            time.sleep()
             
             MESSAGE_COUNT += 1
 
