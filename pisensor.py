@@ -396,20 +396,21 @@ def iothub_client_run():
             # Take readings from sensors
             # Note that get_temperature calls get_temperature_from_humidity which is closer to the cpu
             # https://pythonhosted.org/sense-hat/api/
-            t1 = sense.get_temperature_from_humidity()
-            print ( "   Temperature from humidity sensor %f" % t1 )
-            t2 = sense.get_temperature_from_pressure()
-            print ( "   Temperature from pressure sensor %f" % t2 )
             p = sense.get_pressure()
             print ( "   Pressure %f" % p )
             h = sense.get_humidity()
             print ( "   Humidity %f" % h )
+            t1 = sense.get_temperature_from_humidity()
+            print ( "   Temperature from humidity sensor %f" % t1 )
+            t2 = sense.get_temperature_from_pressure()
+            print ( "   Temperature from pressure sensor %f" % t2 )
 
             # Calculate the real temperature compesating CPU heating
             # http://yaab-arduino.blogspot.ch/2016/08/accurate-temperature-reading-sensehat.html
             t = (t1+t2)/2
             t_corr = t - ((t_cpu-t)/1.5)
             t_corr = get_smooth(t_corr)
+            print ( "   Adjusted temperature %f" % t_corr )
 
             # Round the values to one decimal place
             t1 = round(t1, 1)
