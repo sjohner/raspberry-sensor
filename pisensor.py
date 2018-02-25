@@ -166,7 +166,7 @@ def device_method_callback(method_name, payload, user_context):
     METHOD_CALLBACKS += 1
 
     if method_name == "displayMessage":
-        #displayMessage()
+        displayMessage("Test")
     elif method_name == "blinkError":
         blinkError()
     elif method_name == "blinkSuccess":
