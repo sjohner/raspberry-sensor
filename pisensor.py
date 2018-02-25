@@ -145,11 +145,11 @@ def device_twin_callback(update_state, payload, user_context):
     # if (desired_send_interval != reported_send_interval):      
         #print ( "\nDesired sendInterval %d does not match with configured sendInterval %d" % (desired_send_interval, reported_send_interval))
         # Set send interval in config file
-        set_sendinterval(desired_send_interval)
+    set_sendinterval(desired_send_interval)
     #elif (desired_temp_alert != reported_temp_alert):
         #print ( "\nDesired tempAlert %d does not match with configured tempAlert %d" % (desired_temp_alert, reported_temp_alert))
         # Set temperature alert in config file
-        set_tempalert(desired_temp_alert)
+    set_tempalert(desired_temp_alert)
     #else:
     #    print ("\nDesired state matches with reported state")
 
