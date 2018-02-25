@@ -368,7 +368,7 @@ def iothub_client_run():
 
         # Send telemetry data every 60 seconds
         while True:
-            send_interval = int(config['Telemetry']['interval'])
+            send_interval = int(config['Telemetry']['sendInterval'])
             print ( "Message send interval set to %d" % send_interval)
 
             t_cpu = get_cpu_temp()
