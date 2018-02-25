@@ -21,6 +21,7 @@ from iothub_client import IoTHubClientRetryPolicy, GetRetryPolicyReturnValue
 from iothub_client_args import get_iothub_opt, OptionError
 from sense_hat import SenseHat
 from termcolor import colored
+from __future__ import print_function
 
 # initialize sense hat
 sense = SenseHat()
@@ -160,8 +161,16 @@ def send_reported_state_callback(status_code, user_context):
 
 def device_method_callback(method_name, payload, user_context):
     global METHOD_CALLBACKS
-    print ( "\nMethod callback called with:\nmethodName = %s\npayload = %s\ncontext = %s" % (method_name, payload, user_context) )
+    print ( "\nMethod callback called with:")
+    print ("    Method Name = %s" % method_name)
+    print ("    Payload = %s" % payload)
+    print ("    Context = %s" % user_context)
     METHOD_CALLBACKS += 1
+    print ( "Total calls confirmed: %d\n" % METHOD_CALLBACKS )
+
+    device_method_return_value = DeviceMethodReturnValue()
+    device_method_return_value.response = "{ \"methodName\":\"%s\",\"payload\":\"%s\" }" % (method_name, payload)
+    device_method_return_value.status = 200
 
     if method_name == "displayMessage":
         displayMessage(payload)
@@ -173,12 +182,9 @@ def device_method_callback(method_name, payload, user_context):
         updateDeviceOS()
     else:
         print ("Method not found")
-    
-    print ( "Total calls confirmed: %d\n" % METHOD_CALLBACKS )
-    device_method_return_value = DeviceMethodReturnValue()
-    device_method_return_value.response = "{ \"methodName\":\"%s\" }" % method_name
-    device_method_return_value.status = 200
-    return device_method_return_value
+        device_method_return_value.status = 404
+
+    return device_method_return_value    
 
 
 def blob_upload_conf_callback(result, user_context):
@@ -274,6 +280,7 @@ def set_sendinterval(interval):
 
     # Blink to indicate successful config change
     blinkSuccess()
+    displayMessage("Send interval is now %d seconds" % interval)
 
 
 # Set temp alert in config file
@@ -289,6 +296,7 @@ def set_tempalert(temperature):
 
     # Blink to indicate successful config change
     blinkSuccess()
+    displayMessage("Temperature alert is now %d degrees" % temperature)
 
 
 # Get CPU temperature
@@ -316,7 +324,6 @@ def get_smooth(x):
 
 # blink on error
 def blinkError():
-    print ( "LEDs indicating error" )
     # Set color to red
     r = 255
     g = 0
@@ -331,7 +338,6 @@ def blinkError():
 
 # blink on success
 def blinkSuccess():
-    print ( "LEDs indicating success" )
     # Set color to green
     r = 0
     g = 255
