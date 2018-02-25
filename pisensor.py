@@ -20,6 +20,7 @@ from iothub_client import IoTHubMessage, IoTHubMessageDispositionResult, IoTHubE
 from iothub_client import IoTHubClientRetryPolicy, GetRetryPolicyReturnValue
 from iothub_client_args import get_iothub_opt, OptionError
 from sense_hat import SenseHat
+from termcolor import colored
 
 # initialize sense hat
 sense = SenseHat()
@@ -219,8 +220,6 @@ def iothub_client_init():
     print ( "GetRetryPolicy returned: retryPolicy = %d" %  retryPolicyReturn.retryPolicy)
     print ( "GetRetryPolicy returned: retryTimeoutLimitInSeconds = %d" %  retryPolicyReturn.retryTimeoutLimitInSeconds)
 
-    #return client
-
 
 def print_last_message_time(client):
     try:
@@ -245,13 +244,17 @@ def report_state():
     # Send reported state
     if client.protocol == IoTHubTransportProvider.MQTT:
         print ( "IoTHubClient is reporting state" )
+        print ( "   Python version: %s" % python_version)
+        print ( "   Platform version: %s" % platform_version)
+        print ( "   Send interval: %d" % send_interval)
+        print ( "   Temperatur alert: %d" % temp_alert)
+        
         reported_state = REPORTED_TXT % (
             python_version,
             platform_version,
             send_interval,
             temp_alert
             )
-        print ("reported state: %s" % reported_state)
         client.send_reported_state(reported_state, len(reported_state), send_reported_state_callback, SEND_REPORTED_STATE_CONTEXT)
 
 
@@ -270,6 +273,9 @@ def set_sendinterval(payload):
     # Report new state
     report_state()
 
+    # Blink to indicate successful config change
+    blinkSuccess()
+
 
 # Set temp alert in config file
 def set_tempalert(temperature):
@@ -281,6 +287,9 @@ def set_tempalert(temperature):
 
     # Report new state
     report_state()
+
+    # Blink to indicate successful config change
+    blinkSuccess()
 
 
 # Get CPU temperature
@@ -369,29 +378,29 @@ def iothub_client_run():
         # Send telemetry data every 60 seconds
         while True:
             send_interval = int(config['Telemetry']['sendInterval'])
-            print ( "Message send interval set to %d" % send_interval)
-
+            temp_alert = int(config['Telemetry']['tempAlert'])
+            print colored("Message send interval set to %d" % send_interval, "GREEN")
+            print ( "Collecting telemetry data")
             t_cpu = get_cpu_temp()
-            print ( "Got CPU temperature %f" % t_cpu)            
+            print ( "   CPU temperature %f" % t_cpu)            
 
             # Take readings from sensors
             # Note that get_temperature calls get_temperature_from_humidity which is closer to the cpu
             # https://pythonhosted.org/sense-hat/api/
             t1 = sense.get_temperature_from_humidity()
-            print ( "Got temperature from humidity sensor %f" % t1 )
+            print ( "   Temperature from humidity sensor %f" % t1 )
             t2 = sense.get_temperature_from_pressure()
-            print ( "Got temperature from pressure sensor %f" % t2 )
+            print ( "   Temperature from pressure sensor %f" % t2 )
             p = sense.get_pressure()
-            print ( "Got pressure %f" % p )
+            print ( "   Pressure %f" % p )
             h = sense.get_humidity()
-            print ( "Got humidity %f" % h )
+            print ( "   Humidity %f" % h )
 
             # Calculate the real temperature compesating CPU heating
             # http://yaab-arduino.blogspot.ch/2016/08/accurate-temperature-reading-sensehat.html
             t = (t1+t2)/2
             t_corr = t - ((t_cpu-t)/1.5)
             t_corr = get_smooth(t_corr)
-            
 
             # Round the values to one decimal place
             t1 = round(t1, 1)
@@ -399,8 +408,6 @@ def iothub_client_run():
             t_corr = round(t_corr, 1)
             p = round(p, 1)
             h = round(h, 1)
-
-            print( "Sending t1=%.1f  t2=%.1f  t_cpu=%.1f  t_corr=%.1f  p=%d  h=%d" % (t1, t2, t_cpu, t_corr, p, h) )
 
             print ( "IoTHubClient sending message %d" % MESSAGE_COUNT )
             
@@ -421,7 +428,7 @@ def iothub_client_run():
             prop_map = message.properties()
 
             # Add temperatureAlert property depending on temperature
-            prop_map.add("temperatureAlert", 'true' if t_corr > 30 else 'false')
+            prop_map.add("temperatureAlert", 'true' if t_corr > temp_alert else 'false')
             
             client.send_event_async(message, send_confirmation_callback, MESSAGE_COUNT)
             print ( "IoTHubClient.send_event_async accepted message [%d] for transmission to IoT Hub." % MESSAGE_COUNT )
