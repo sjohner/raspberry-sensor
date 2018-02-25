@@ -73,7 +73,7 @@ CONNECTION_STRING = str(config['Default']['connectionstring'])
 
 # message texts
 MESSAGE_TXT = "{\"deviceId\": \"jhnr-device\",\"temp_from_humidity\": %.2f,\"temp_from_pressure\": %.2f,\"temp_cpu\": %.2f,\"temp_corr\": %.2f,\"pressure\": %.2f,\"humidity\": %.2f}"
-REPORTED_TXT = "{\"pythonVersion\":\"%s\",\"platformVersion\":\"%s\",\"sendInterval\":%d,\"tempAlert\":%d}"
+REPORTED_TXT = "{\"newState\":null,\"pythonVersion\":\"%s\",\"platformVersion\":\"%s\",\"sendInterval\":%d,\"tempAlert\":%d}"
 
 
 # some embedded platforms need certificate information
@@ -379,7 +379,7 @@ def iothub_client_run():
         # Initialize global IoT Hub client
         iothub_client_init()
 
-        # Send reported state once the client starts
+        # Report state once the client starts
         report_state()
 
         # Send telemetry data every 60 seconds
@@ -387,6 +387,7 @@ def iothub_client_run():
             send_interval = int(config['Telemetry']['sendInterval'])
             temp_alert = int(config['Telemetry']['tempAlert'])
             print ( "\nMessage send interval set to %d" % send_interval)
+            print ( "Temperature alert set to %d" % temp_alert)
 
             print ( "\nCollecting telemetry data")
             # CPU temperature
@@ -459,7 +460,7 @@ def iothub_client_run():
 
 
 def usage():
-    print ( "Usage: iothub_client_sample.py -p <protocol> -c <connectionstring>" )
+    print ( "Usage: pisensor.py -p <protocol> -c <connectionstring>" )
     print ( "    protocol        : <amqp, amqp_ws, http, mqtt, mqtt_ws>" )
     print ( "    connectionstring: <HostName=<host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>>" )
 
@@ -475,7 +476,7 @@ if __name__ == '__main__':
         usage()
         sys.exit(1)
 
-    print ( "Starting the IoT Hub Python sample..." )
+    print ( "Starting RaspberryPi sensor..." )
     print ( "    Protocol %s" % PROTOCOL )
     print ( "    Connection string=%s" % CONNECTION_STRING )
 
