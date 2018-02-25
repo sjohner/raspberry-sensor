@@ -379,8 +379,10 @@ def iothub_client_run():
         while True:
             send_interval = int(config['Telemetry']['sendInterval'])
             temp_alert = int(config['Telemetry']['tempAlert'])
-            print colored("Message send interval set to %d" % send_interval, "GREEN")
+            print ( "Message send interval set to %d" % send_interval)
+
             print ( "Collecting telemetry data")
+            # CPU temperature
             t_cpu = get_cpu_temp()
             print ( "   CPU temperature %f" % t_cpu)            
 
