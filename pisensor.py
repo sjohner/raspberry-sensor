@@ -132,7 +132,9 @@ def device_twin_callback(update_state, payload, user_context):
     TWIN_CALLBACKS += 1
     print ( "Total calls confirmed: %d\n" % TWIN_CALLBACKS )
     
-    if (update_state == "PARTIAL"):
+    print (type(update_state))
+
+    if (update_state.lower() is "partial"):
         print ("Updating config with desired values")
         # Get desired values from json payload
         json_payload = json.loads(payload)
@@ -149,6 +151,9 @@ def device_twin_callback(update_state, payload, user_context):
 
         if (desired_temp_alert != actual_temp_alert):
             set_tempalert(desired_temp_alert)
+
+    else:
+        print ("Blabla123")
     
     # desired_send_interval = int(json_payload['desired']['sendInterval'])
     # desired_temp_alert = int(json_payload['desired']['tempAlert'])
