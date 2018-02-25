@@ -126,17 +126,22 @@ def connection_status_callback(result, reason, user_context):
 def device_twin_callback(update_state, payload, user_context):
     global TWIN_CALLBACKS
 
+    # Get values from json payload
     json_payload = json.loads(payload)
+    desired_send_interval = int(payload['desired']['sendInterval'])
+    desired_temp_alert = int(payload['desired']['tempAlert'])
+    reported_send_interval = int(json_payload['reported']['sendInterval'])
+    reported_temp_alert = int(json_payload['reported']['tempAlert'])
 
     # Check if desired state is equal reported state 
-    if (json_payload['desired']['sendInterval'] != json_payload['reported']['sendInterval']):
-        print ( "Desired sendInterval %d does not match with configured sendInterval %d" % (json_payload['desired']['sendInterval'], json_payload['reported']['sendInterval']))
+    if (desired_send_interval != reported_send_interval):      
+        print ( "Desired sendInterval %d does not match with configured sendInterval %d" % (desired_send_interval, reported_send_interval))
         # Set send interval in config file
-        set_sendinterval(payload['desired']['sendInterval'])
-    elif (json_payload['desired']['tempAlert'] != json_payload['reported']['tempAlert']):
-        print ( "Desired tempAlert %d does not match with configured tempAlert %d" % (json_payload['desired']['tempAlert'], json_payload['reported']['tempAlert']))
+        set_sendinterval(desired_send_interval)
+    elif (desired_temp_alert != reported_temp_alert):
+        print ( "Desired tempAlert %d does not match with configured tempAlert %d" % (desired_temp_alert, reported_temp_alert))
         # Set temperature alert in config file
-        set_tempalert(payload['desired']['tempAlert'])
+        set_tempalert(desired_temp_alert)
     else:
         print (" Desired state matches with reported state")
 
