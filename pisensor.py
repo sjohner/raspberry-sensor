@@ -132,9 +132,6 @@ def device_twin_callback(update_state, payload, user_context):
     TWIN_CALLBACKS += 1
     print ( "Total calls confirmed: %d\n" % TWIN_CALLBACKS )
 
-    print (type(update_state))
-    print (str(update_state))
-
     if (str(update_state) == "PARTIAL"):
         print ("Updating config with desired values")
         # Get desired values from json payload
@@ -153,26 +150,8 @@ def device_twin_callback(update_state, payload, user_context):
         if (desired_temp_alert != actual_temp_alert):
             set_tempalert(desired_temp_alert)
 
-    else:
-        print ("Blabla123")
-    
-    # desired_send_interval = int(json_payload['desired']['sendInterval'])
-    # desired_temp_alert = int(json_payload['desired']['tempAlert'])
-    # reported_send_interval = int(json_payload['reported']['sendInterval'])
-    # reported_temp_alert = int(json_payload['reported']['tempAlert'])
-    
-
-    # Check if desired state is equal reported state 
-    # if (desired_send_interval != reported_send_interval):      
-        #print ( "\nDesired sendInterval %d does not match with configured sendInterval %d" % (desired_send_interval, reported_send_interval))
-        # Set send interval in config file
-    
-    #elif (desired_temp_alert != reported_temp_alert):
-        #print ( "\nDesired tempAlert %d does not match with configured tempAlert %d" % (desired_temp_alert, reported_temp_alert))
-        # Set temperature alert in config file
-    #set_tempalert(desired_temp_alert)
-    #else:
-    #    print ("\nDesired state matches with reported state")
+        # Report new state
+        report_state()
 
 
 def send_reported_state_callback(status_code, user_context):
@@ -292,13 +271,10 @@ def set_sendinterval(interval):
     print ("Changing send interval from %d to %d" % (actual_send_interval, interval))
 
     # Set send interval in config file
-    config['Telemetry']['interval'] = str(interval)
+    config['Telemetry']['sendInterval'] = str(interval)
     # Write config file
     with open('pisensor.conf', 'w') as configfile:
 	    config.write(configfile)
-
-    # Report new state
-    report_state()
 
     # Blink to indicate successful config change
     blinkSuccess()
@@ -314,9 +290,6 @@ def set_tempalert(temperature):
     # Write config file
     with open('pisensor.conf', 'w') as configfile:
 	    config.write(configfile)
-
-    # Report new state
-    report_state()
 
     # Blink to indicate successful config change
     blinkSuccess()
