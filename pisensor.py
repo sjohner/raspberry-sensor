@@ -23,14 +23,14 @@ from sense_hat import SenseHat
 from termcolor import colored
 from __future__ import print_function
 
-# initialize sense hat
+# Initialize sense hat
 sense = SenseHat()
 
-# initialize configparser
+# Initialize configparser
 config = configparser.ConfigParser()
 config.read('pisensor.conf')
 
-# global IoT Hub client to be assigned by iothub_client_init()
+# Global IoT Hub client to be assigned by iothub_client_init()
 client = None
 
 # HTTP options
@@ -44,7 +44,7 @@ MINIMUM_POLLING_TIME = 9
 
 # messageTimeout - the maximum time in milliseconds until a message times out.
 # The timeout period starts at IoTHubClient.send_event_async.
-# By default, messages do not expire.
+# by default, messages do not expire.
 MESSAGE_TIMEOUT = 10000
 
 RECEIVE_CONTEXT = 0
@@ -55,7 +55,7 @@ TWIN_CONTEXT = 0
 SEND_REPORTED_STATE_CONTEXT = 0
 METHOD_CONTEXT = 0
 
-# global counters
+# Global counters
 MESSAGE_COUNT = 0
 RECEIVE_CALLBACKS = 0
 SEND_CALLBACKS = 0
@@ -65,19 +65,19 @@ TWIN_CALLBACKS = 0
 SEND_REPORTED_STATE_CALLBACKS = 0
 METHOD_CALLBACKS = 0
 
-# choose HTTP, AMQP, AMQP_WS or MQTT as transport protocol
+# Choose HTTP, AMQP, AMQP_WS or MQTT as transport protocol
 PROTOCOL = IoTHubTransportProvider.MQTT
 
 # String containing Hostname, Device Id & Device Key in the format:
 # "HostName=<host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>"
+# Will be read from config file
 CONNECTION_STRING = str(config['Default']['connectionstring'])
 
-# message texts
+# Message texts
 MESSAGE_TXT = "{\"deviceId\": \"jhnr-device\",\"temp_from_humidity\": %.2f,\"temp_from_pressure\": %.2f,\"temp_cpu\": %.2f,\"temp_corr\": %.2f,\"pressure\": %.2f,\"humidity\": %.2f}"
 REPORTED_TXT = "{\"pythonVersion\":\"%s\",\"platformVersion\":\"%s\",\"sendInterval\":%d,\"tempAlert\":%d}"
 
-
-# some embedded platforms need certificate information
+# Some embedded platforms need certificate information
 def set_certificates(client):
     from iothub_client_cert import CERTIFICATES
     try:
@@ -86,8 +86,7 @@ def set_certificates(client):
     except IoTHubClientError as iothub_client_error:
         print ( "set_option TrustedCerts failed (%s)" % iothub_client_error )
 
-
-# device callback method
+# Called whenever a C2D message from IoT Hub is received
 def receive_message_callback(message, counter):
     global RECEIVE_CALLBACKS
     message_buffer = message.get_bytearray()
@@ -102,7 +101,7 @@ def receive_message_callback(message, counter):
     print ( "    Total calls received: %d" % RECEIVE_CALLBACKS )
     return IoTHubMessageDispositionResult.ACCEPTED
 
-
+# Called whenever a confirmation from IoT Hub is received
 def send_confirmation_callback(message, result, user_context):
     global SEND_CALLBACKS
     print ( "Confirmation[%d] received for message with result = %s" % (user_context, result) )
@@ -123,7 +122,7 @@ def connection_status_callback(result, reason, user_context):
     CONNECTION_STATUS_CALLBACKS += 1
     print ( "    Total calls confirmed: %d" % CONNECTION_STATUS_CALLBACKS )
 
-
+# Called whenever a notification for desired state change was received 
 def device_twin_callback(update_state, payload, user_context):
     global TWIN_CALLBACKS
     print ( "\nTwin callback called with:")
@@ -150,7 +149,7 @@ def device_twin_callback(update_state, payload, user_context):
         # Report new state
         report_state()
 
-
+# Called whenever a confirmation for reported state was received
 def send_reported_state_callback(status_code, user_context):
     global SEND_REPORTED_STATE_CALLBACKS
     print ( "Confirmation[%d] for reported state received with:" % (user_context) )
@@ -158,7 +157,7 @@ def send_reported_state_callback(status_code, user_context):
     SEND_REPORTED_STATE_CALLBACKS += 1
     print ( "    Total calls confirmed: %d" % SEND_REPORTED_STATE_CALLBACKS )
 
-
+# Called whenever a notification for a direct method call was received
 def device_method_callback(method_name, payload, user_context):
     global METHOD_CALLBACKS
     print ( "\nMethod callback called with:")
@@ -172,29 +171,24 @@ def device_method_callback(method_name, payload, user_context):
     device_method_return_value.response = "{ \"methodName\":\"%s\",\"payload\":\"%s\" }" % (method_name, payload)
     device_method_return_value.status = 200
 
-    if method_name == "displayMessage":
-        displayMessage(payload)
-    elif method_name == "blinkError":
-        blinkError()
-    elif method_name == "blinkSuccess":
-        blinkSuccess()
-    elif method_name == "updateDeviceOS":
-        updateDeviceOS()
+    if method_name == "display_message":
+        display_message(payload)
+    elif method_name == "update_device":
+        update_device()
     else:
         print ("Method not found")
         device_method_return_value.status = 404
 
     return device_method_return_value    
 
-
+# Called whenever an upload confirmation is received
 def blob_upload_conf_callback(result, user_context):
     global BLOB_CALLBACKS
     print ( "Blob upload confirmation[%d] received for message with result = %s" % (user_context, result) )
     BLOB_CALLBACKS += 1
     print ( "    Total calls confirmed: %d" % BLOB_CALLBACKS )
 
-
-# prepare iothub client
+# Prepare iothub client
 def iothub_client_init():
     global client
 
@@ -229,7 +223,6 @@ def iothub_client_init():
     print ( "GetRetryPolicy returned: retryPolicy = %d" %  retryPolicyReturn.retryPolicy)
     print ( "GetRetryPolicy returned: retryTimeoutLimitInSeconds = %d" %  retryPolicyReturn.retryTimeoutLimitInSeconds)
 
-
 def print_last_message_time(client):
     try:
         last_message = client.get_last_message_receive_time()
@@ -241,8 +234,7 @@ def print_last_message_time(client):
         else:
             print ( iothub_client_error )
 
-
-# Report state to IoT Hub
+# Report current state to IoT Hub
 def report_state():
     # Gather state information
     python_version = check_version()
@@ -266,7 +258,6 @@ def report_state():
             )
         client.send_reported_state(reported_state, len(reported_state), send_reported_state_callback, SEND_REPORTED_STATE_CONTEXT)
 
-
 # Set send interval in config file
 def set_sendinterval(interval):
     actual_send_interval = int(config['Telemetry']['sendinterval'])
@@ -279,9 +270,8 @@ def set_sendinterval(interval):
 	    config.write(configfile)
 
     # Blink to indicate successful config change
-    blinkSuccess()
-    displayMessage("Send interval is now %d seconds" % interval)
-
+    blink_leds(0, 255, 0)
+    display_message("Send interval is now %d seconds" % interval)
 
 # Set temp alert in config file
 def set_tempalert(temperature):
@@ -295,9 +285,8 @@ def set_tempalert(temperature):
 	    config.write(configfile)
 
     # Blink to indicate successful config change
-    blinkSuccess()
-    displayMessage("Temperature alert is now %d degrees" % temperature)
-
+    blink_leds(0, 255, 0)
+    display_message("Temperature alert is now %d degrees" % temperature)
 
 # Get CPU temperature
 def get_cpu_temp():
@@ -310,7 +299,6 @@ def get_cpu_temp():
         tFile.close()
         exit
 
-
 # Use moving average to smooth readings
 def get_smooth(x):
     if not hasattr(get_smooth, "t"):
@@ -321,10 +309,9 @@ def get_smooth(x):
     xs = (get_smooth.t[0]+get_smooth.t[1]+get_smooth.t[2])/3
     return(xs)
 
-
-# blink on error
-def blinkError():
-    # Set color to red
+# Blink Sense HAT leds
+def blink_leds(red, green, blue):
+    # Set color
     r = 255
     g = 0
     b = 0
@@ -335,59 +322,36 @@ def blinkError():
         sense.clear()
         time.sleep(1)
 
-
-# blink on success
-def blinkSuccess():
-    # Set color to green
-    r = 0
-    g = 255
-    b = 0
-    # Blink LEDs
-    for x in range(3):
-        sense.clear((r, g, b))
-        time.sleep(1)
-        sense.clear()
-        time.sleep(1)
-
-
-# display message
-def displayMessage(message):
+# Display message on Sense HAT
+def display_message(message):
     print ( "Displaying following message on Sense HAT" )
     print ( "   \"%s\"" % message)
-    # display message on Sense HAT
     sense.show_message(message)
 
-
-# update device os
-def updateDeviceOS():
+# Update device OS
+def update_device():
     print ("Updating device operating system")
     subprocess.call(['sudo', 'apt-get', 'update'])
     subprocess.call(['sudo', 'apt-get', '-y', 'upgrade'])
 
-
-# check python version
+# Check installed Python version
 def check_version():
     py_version = platform.python_version()
     return py_version
 
-
-# check OS / platform version
+# Check OS / platform version
 def check_platform():
     os_platform = platform.platform()
     return os_platform
 
-
-# run client
+# Run IoT Hub client
 def iothub_client_run():
     global MESSAGE_COUNT
-    #global client
     try:
         # Initialize global IoT Hub client
         iothub_client_init()
-
         # Report state once the client starts
         report_state()
-
         # Send telemetry data every 60 seconds
         while True:
             send_interval = int(config['Telemetry']['sendInterval'])
@@ -428,7 +392,7 @@ def iothub_client_run():
 
             print ( "IoTHubClient sending message %d" % MESSAGE_COUNT )
             
-            # Generate message text with given senor output
+            # Generate message text with given sensor output
             msg_txt_formatted = MESSAGE_TXT % (
                 t1,
                 t2,
@@ -438,13 +402,13 @@ def iothub_client_run():
                 h)
             
             message = IoTHubMessage(msg_txt_formatted)
-            # optional: assign ids
+            # Optional: assign ids
             message.message_id = "message_%d" % MESSAGE_COUNT
             message.correlation_id = "correlation_%d" % MESSAGE_COUNT
-            # optional: assign properties
+            # Optional: assign properties
             prop_map = message.properties()
 
-            # Add temperatureAlert property depending on temperature
+            # Add temperatureAlert property depending on current temperature
             prop_map.add("temperatureAlert", 'true' if t_corr > temp_alert else 'false')
             
             client.send_event_async(message, send_confirmation_callback, MESSAGE_COUNT)
@@ -454,7 +418,6 @@ def iothub_client_run():
             time.sleep(send_interval)
             
             MESSAGE_COUNT += 1
-
 
     except IoTHubError as iothub_error:
         print ( "Unexpected error %s from IoTHub" % iothub_error )
