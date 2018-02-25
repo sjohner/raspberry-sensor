@@ -6,7 +6,6 @@
 # Licensed under the MIT license. See LICENSE file in the project root for
 # full license information.
 
-from __future__ import print_function
 import subprocess
 import random
 import time
@@ -168,7 +167,7 @@ def device_method_callback(method_name, payload, user_context):
     print ( "Total calls confirmed: %d\n" % METHOD_CALLBACKS )
 
     device_method_return_value = DeviceMethodReturnValue()
-    device_method_return_value.response = "{ \"methodName\":\"%s\",\"payload\":\"%s\" }" % (method_name, payload)
+    device_method_return_value.response = "{ \"methodName\":\"%s\" }" % method_name
     device_method_return_value.status = 200
 
     if method_name == "display_message":
