@@ -20,7 +20,6 @@ from iothub_client import IoTHubMessage, IoTHubMessageDispositionResult, IoTHubE
 from iothub_client import IoTHubClientRetryPolicy, GetRetryPolicyReturnValue
 from iothub_client_args import get_iothub_opt, OptionError
 from sense_hat import SenseHat
-from termcolor import colored
 
 # Initialize sense hat
 sense = SenseHat()
@@ -417,9 +416,10 @@ def iothub_client_run():
         print ( "Unexpected error %s from IoTHub" % iothub_error )
         return
     except KeyboardInterrupt:
-        print ( "IoTHubClient sample stopped" )
+        print ( "\nIoTHubClient sample stopped" )
 
-    print_last_message_time(client)
+    # TODO: Check if any messages received otherwise error is thrown
+    # print_last_message_time(client)
 
 
 def usage():
