@@ -6,6 +6,7 @@
 # Licensed under the MIT license. See LICENSE file in the project root for
 # full license information.
 
+from __future__ import print_function
 import subprocess
 import random
 import time
